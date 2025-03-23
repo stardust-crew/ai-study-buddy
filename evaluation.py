@@ -8,6 +8,17 @@ from typing import List
 from pydantic import BaseModel, Field
 import io
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+from agno.vectordb.lancedb import LanceDb
+from agno.vectordb.chroma import ChromaDb
+
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get API keys from environment variables
+GOOGLE_API_KEY = os.getenv("google_api_key")
 
 class quiz_ques(BaseModel):
     question: str =  Field(..., description="The question text")
@@ -53,10 +64,9 @@ def initialize_agent_with_pdf(pdf_file, agent_name="StudyScout", agent_role="stu
         # Create a knowledge base for this specific PDF
         custom_kb = PDFKnowledgeBase(
             path=pdf_path,
-            vector_db=PgVector(
-                table_name=table_name,
-                db_url="postgresql+psycopg://ai:ai@localhost:5532/ai",
-                embedder=GeminiEmbedder(api_key=""),
+            vector_db = ChromaDb(
+                collection=table_name,
+                embedder=GeminiEmbedder(api_key=GOOGLE_API_KEY),
             ),
             reader=PDFReader(chunk=True, chunking_strategy=AgenticChunking()),
         )
@@ -70,7 +80,7 @@ def initialize_agent_with_pdf(pdf_file, agent_name="StudyScout", agent_role="stu
             knowledge=custom_kb,
             search_knowledge=True,
             role=agent_role,
-            model=Gemini(id="gemini-2.0-flash", api_key=""),
+            model=Gemini(id="gemini-2.0-flash", api_key=GOOGLE_API_KEY),
             markdown=True,
             description="you are a study partner who assists users in finding resources and make quizes on various topics.",
             instructions=[

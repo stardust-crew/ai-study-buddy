@@ -8,6 +8,21 @@ from agno.knowledge.pdf import PDFKnowledgeBase, PDFReader
 from agno.vectordb.pgvector import PgVector
 from agno.embedder.google import GeminiEmbedder
 from agno.document.chunking.agentic import AgenticChunking
+from agno.vectordb.lancedb import LanceDb
+from agno.vectordb.search import SearchType
+from agno.vectordb.chroma import ChromaDb
+
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get API keys from environment variables
+GROQ_API_KEY = os.getenv("gro_api_key")
+GOOGLE_API_KEY = os.getenv("google_api_key")
+TAVILY_API_KEY = os.getenv("tavily_api_key")
+TODOIST_TOKEN = os.getenv("todoist_token")
 
 todoist_agent = Agent(
     name="Todoist Agent",
@@ -20,21 +35,20 @@ todoist_agent = Agent(
         "When given a task to get, get the todoist task.",
     ],
     agent_id="todoist-agent",
-    model=Groq(id="llama-3.3-70b-versatile", api_key=""),
-    tools=[TodoistTools(api_token="")],
+    model=Groq(id="llama-3.3-70b-versatile", api_key=GROQ_API_KEY),
+    tools=[TodoistTools(api_token=TODOIST_TOKEN)],
     markdown=True,
     show_tool_calls=True,
     expected_output="Todoist task created successfully.",
 )
 
 
-
 study_partner = Agent(
     name="StudyScout",
     role="collect resources, make study plans, and provide explanations",
     team=[todoist_agent],
-    model=Gemini(id="gemini-2.0-flash", api_key=""),
-    tools=[TavilyTools(api_key=""), YouTubeTools()],
+    model=Gemini(id="gemini-2.0-flash", api_key=GOOGLE_API_KEY),
+    tools=[TavilyTools(api_key=TAVILY_API_KEY), YouTubeTools()],
     markdown=True,
     description="You are a study partner who assists users in finding resources, answering questions, and providing explanations on various topics.",
     instructions=[
@@ -75,10 +89,9 @@ def initialize_chat_with_pdf(pdf_file, agent_name="StudyScout", agent_role="coll
         # Create a knowledge base for this specific PDF
         custom_kb = PDFKnowledgeBase(
             path=pdf_path,
-            vector_db=PgVector(
-                table_name=table_name,
-                db_url="postgresql+psycopg://ai:ai@localhost:5532/ai",
-                embedder=GeminiEmbedder(api_key=""),
+            vector_db = ChromaDb(
+                collection=table_name,
+                embedder=GeminiEmbedder(api_key=GOOGLE_API_KEY),
             ),
             reader=PDFReader(chunk=True, chunking_strategy=AgenticChunking()),
         )
@@ -94,8 +107,8 @@ def initialize_chat_with_pdf(pdf_file, agent_name="StudyScout", agent_role="coll
             add_references=True,
             role="collect resources, make study plans, and provide explanations",
             team=[todoist_agent],
-            model=Gemini(id="gemini-2.0-flash", api_key=""),
-            tools=[TavilyTools(api_key=""), YouTubeTools()],
+            model=Gemini(id="gemini-2.0-flash", api_key=GOOGLE_API_KEY),
+            tools=[TavilyTools(api_key=TAVILY_API_KEY), YouTubeTools()],
             markdown=True,
             description="You are a study partner who assists users in finding resources, answering questions, and providing explanations on various topics.",
             instructions=[
