@@ -1,14 +1,12 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
 from datetime import datetime
 import random
 import io
-from pathlib import Path
 
 # Import agent functions
 from evaluation import initialize_agent_with_pdf, generate_quiz
-from study import study_partner, initialize_chat_with_pdf
+from study import initialize_chat_with_pdf
 
 # Page configuration
 st.set_page_config(

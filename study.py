@@ -1,21 +1,13 @@
 from agno.agent import Agent
 from agno.models.google.gemini import Gemini
 from agno.tools.youtube import YouTubeTools
-from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.tavily import TavilyTools
 from agno.tools.todoist import TodoistTools
 from agno.models.groq import Groq
-from agno.playground import Playground, serve_playground_app
 from agno.knowledge.pdf import PDFKnowledgeBase, PDFReader
 from agno.vectordb.pgvector import PgVector
 from agno.embedder.google import GeminiEmbedder
 from agno.document.chunking.agentic import AgenticChunking
-
-from rich.console import Console
-from rich.pretty import pprint
-from rich.panel import Panel
-from rich.json import JSON
-import json
 
 todoist_agent = Agent(
     name="Todoist Agent",
@@ -28,8 +20,8 @@ todoist_agent = Agent(
         "When given a task to get, get the todoist task.",
     ],
     agent_id="todoist-agent",
-    model=Groq(id="llama-3.3-70b-versatile", api_key="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"),
-    tools=[TodoistTools(api_token="4545fbcc373c320d46b7b0d53ca389e6b5f96e43")],
+    model=Groq(id="llama-3.3-70b-versatile", api_key=""),
+    tools=[TodoistTools(api_token="")],
     markdown=True,
     show_tool_calls=True,
     expected_output="Todoist task created successfully.",
@@ -41,8 +33,8 @@ study_partner = Agent(
     name="StudyScout",
     role="collect resources, make study plans, and provide explanations",
     team=[todoist_agent],
-    model=Gemini(id="gemini-2.0-flash", api_key="AIzaSyDaUUXY0_H8kWt8068ew2Tu_95wLYOXByE"),
-    tools=[TavilyTools(api_key="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"), YouTubeTools()],
+    model=Gemini(id="gemini-2.0-flash", api_key=""),
+    tools=[TavilyTools(api_key=""), YouTubeTools()],
     markdown=True,
     description="You are a study partner who assists users in finding resources, answering questions, and providing explanations on various topics.",
     instructions=[
@@ -86,7 +78,7 @@ def initialize_chat_with_pdf(pdf_file, agent_name="StudyScout", agent_role="coll
             vector_db=PgVector(
                 table_name=table_name,
                 db_url="postgresql+psycopg://ai:ai@localhost:5532/ai",
-                embedder=GeminiEmbedder(api_key="AIzaSyDaUUXY0_H8kWt8068ew2Tu_95wLYOXByE"),
+                embedder=GeminiEmbedder(api_key=""),
             ),
             reader=PDFReader(chunk=True, chunking_strategy=AgenticChunking()),
         )
@@ -102,8 +94,8 @@ def initialize_chat_with_pdf(pdf_file, agent_name="StudyScout", agent_role="coll
             add_references=True,
             role="collect resources, make study plans, and provide explanations",
             team=[todoist_agent],
-            model=Gemini(id="gemini-2.0-flash", api_key="AIzaSyDaUUXY0_H8kWt8068ew2Tu_95wLYOXByE"),
-            tools=[TavilyTools(api_key="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"), YouTubeTools()],
+            model=Gemini(id="gemini-2.0-flash", api_key=""),
+            tools=[TavilyTools(api_key=""), YouTubeTools()],
             markdown=True,
             description="You are a study partner who assists users in finding resources, answering questions, and providing explanations on various topics.",
             instructions=[
