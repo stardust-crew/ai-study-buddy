@@ -1,17 +1,13 @@
 from agno.agent import Agent
 from agno.models.google.gemini import Gemini
 from agno.knowledge.pdf import PDFKnowledgeBase, PDFReader
-from agno.vectordb.pgvector import PgVector
 from agno.embedder.google import GeminiEmbedder
 from agno.document.chunking.agentic import AgenticChunking
 from typing import List
 from pydantic import BaseModel, Field
-import io
-from pathlib import Path
 import os
 from dotenv import load_dotenv
 from agno.vectordb.lancedb import LanceDb
-from agno.vectordb.chroma import ChromaDb
 
 
 # Load environment variables from .env file
@@ -64,8 +60,9 @@ def initialize_agent_with_pdf(pdf_file, agent_name="StudyScout", agent_role="stu
         # Create a knowledge base for this specific PDF
         custom_kb = PDFKnowledgeBase(
             path=pdf_path,
-            vector_db = ChromaDb(
-                collection=table_name,
+            vector_db = LanceDb(
+                uri='./tmp/lancedb',
+                table_name=table_name,
                 embedder=GeminiEmbedder(api_key=GOOGLE_API_KEY),
             ),
             reader=PDFReader(chunk=True, chunking_strategy=AgenticChunking()),

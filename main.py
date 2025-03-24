@@ -5,8 +5,8 @@ import random
 import io
 
 # Import agent functions
-from evaluation import initialize_agent_with_pdf, generate_quiz
-from study import initialize_chat_with_pdf
+from quiz_agent import initialize_agent_with_pdf, generate_quiz
+from chat_agent import initialize_chat_with_pdf
 
 # Page configuration
 st.set_page_config(

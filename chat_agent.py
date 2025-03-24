@@ -5,12 +5,9 @@ from agno.tools.tavily import TavilyTools
 from agno.tools.todoist import TodoistTools
 from agno.models.groq import Groq
 from agno.knowledge.pdf import PDFKnowledgeBase, PDFReader
-from agno.vectordb.pgvector import PgVector
 from agno.embedder.google import GeminiEmbedder
 from agno.document.chunking.agentic import AgenticChunking
 from agno.vectordb.lancedb import LanceDb
-from agno.vectordb.search import SearchType
-from agno.vectordb.chroma import ChromaDb
 
 import os
 from dotenv import load_dotenv
@@ -43,31 +40,6 @@ todoist_agent = Agent(
 )
 
 
-study_partner = Agent(
-    name="StudyScout",
-    role="collect resources, make study plans, and provide explanations",
-    team=[todoist_agent],
-    model=Gemini(id="gemini-2.0-flash", api_key=GOOGLE_API_KEY),
-    tools=[TavilyTools(api_key=TAVILY_API_KEY), YouTubeTools()],
-    markdown=True,
-    description="You are a study partner who assists users in finding resources, answering questions, and providing explanations on various topics.",
-    instructions=[
-        """Use Tavily to search for relevant information on the given topic and verify information from multiple reliable sources.,
-        Break down complex topics into digestible chunks and provide step-by-step explanations with practical examples.,
-        Share curated learning resources including documentation, tutorials, articles, research papers, and community discussions.,
-        Recommend high-quality YouTube videos and online courses that match the user's learning style and proficiency level.,
-        Suggest hands-on projects and exercises to reinforce learning, ranging from beginner to advanced difficulty.,
-        Create personalized study plans with clear milestones, deadlines, and progress tracking.,
-        Provide tips for effective learning techniques, time management, and maintaining motivation.,
-        Recommend relevant communities, forums, and study groups for peer learning and networking.,
-        make a todoist list for the user to follow - give a list of tasks (daily tasks as separate function calls) to the todoist agent""",
-    ],
-    read_chat_history=True,
-    add_history_to_messages=True,
-    num_history_responses=3,
-    show_tool_calls=True
-)
-
 def initialize_chat_with_pdf(pdf_file, agent_name="StudyScout", agent_role="collect resources, make study plans, and provide explanations", table_name=None):
     import tempfile
     import os
@@ -89,8 +61,9 @@ def initialize_chat_with_pdf(pdf_file, agent_name="StudyScout", agent_role="coll
         # Create a knowledge base for this specific PDF
         custom_kb = PDFKnowledgeBase(
             path=pdf_path,
-            vector_db = ChromaDb(
-                collection=table_name,
+            vector_db = LanceDb(
+                uri='./tmp/lancedb',
+                table_name=table_name,
                 embedder=GeminiEmbedder(api_key=GOOGLE_API_KEY),
             ),
             reader=PDFReader(chunk=True, chunking_strategy=AgenticChunking()),
